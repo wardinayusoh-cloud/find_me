@@ -14,7 +14,6 @@ import '../shared/stat_banner_card.dart';
 import '../auth/login_page.dart';
 import 'item_detail_page.dart';
 
-
 class HomePage extends StatefulWidget {
   final dynamic userData;
 
@@ -360,7 +359,9 @@ class _HomePageState extends State<HomePage> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: const Text('ยื่นสิทธิ์ความเป็นเจ้าของ'),
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
@@ -389,21 +390,31 @@ class _HomePageState extends State<HomePage> {
                         final source = await showModalBottomSheet<ImageSource>(
                           context: dialogContext,
                           shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
                           ),
                           builder: (ctx) => SafeArea(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ListTile(
-                                  leading: const Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
+                                  leading: const Icon(
+                                    Icons.camera_alt,
+                                    color: Color(0xFF2563EB),
+                                  ),
                                   title: const Text('ถ่ายรูป'),
-                                  onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                                  onTap: () =>
+                                      Navigator.pop(ctx, ImageSource.camera),
                                 ),
                                 ListTile(
-                                  leading: const Icon(Icons.photo_library, color: Color(0xFF2563EB)),
+                                  leading: const Icon(
+                                    Icons.photo_library,
+                                    color: Color(0xFF2563EB),
+                                  ),
                                   title: const Text('เลือกจากแกลเลอรี'),
-                                  onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                                  onTap: () =>
+                                      Navigator.pop(ctx, ImageSource.gallery),
                                 ),
                               ],
                             ),
@@ -453,8 +464,11 @@ class _HomePageState extends State<HomePage> {
                             : const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.add_a_photo_outlined,
-                                      size: 32, color: Color(0xFF94A3B8)),
+                                  Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 32,
+                                    color: Color(0xFF94A3B8),
+                                  ),
                                   SizedBox(height: 6),
                                   Text(
                                     'แตะเพื่อเลือกรูปภาพ',
@@ -473,9 +487,15 @@ class _HomePageState extends State<HomePage> {
                         child: TextButton.icon(
                           onPressed: () =>
                               setDialogState(() => selectedImage = null),
-                          icon: const Icon(Icons.close, size: 16, color: Colors.red),
-                          label: const Text('ลบรูป',
-                              style: TextStyle(fontSize: 12, color: Colors.red)),
+                          icon: const Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.red,
+                          ),
+                          label: const Text(
+                            'ลบรูป',
+                            style: TextStyle(fontSize: 12, color: Colors.red),
+                          ),
                         ),
                       ),
                     const SizedBox(height: 10),
@@ -485,7 +505,8 @@ class _HomePageState extends State<HomePage> {
                       controller: controller,
                       maxLines: 3,
                       decoration: const InputDecoration(
-                        hintText: 'อธิบายลักษณะเฉพาะของสิ่งของ\nเพื่อยืนยันว่าเป็นของคุณ',
+                        hintText:
+                            'อธิบายลักษณะเฉพาะของสิ่งของ\nเพื่อยืนยันว่าเป็นของคุณ',
                         border: OutlineInputBorder(),
                         contentPadding: EdgeInsets.all(10),
                       ),
@@ -527,10 +548,7 @@ class _HomePageState extends State<HomePage> {
     final image = result['image'] as XFile?;
 
     if (image == null) {
-      _toast(
-        'กรุณาถ่ายรูปหรือเลือกรูปภาพหลักฐาน',
-        color: Colors.red,
-      );
+      _toast('กรุณาถ่ายรูปหรือเลือกรูปภาพหลักฐาน', color: Colors.red);
       return;
     }
 

@@ -811,7 +811,7 @@ if ($action == "create_lost_item") {
             ?,
             ?,
             ?,
-            'pending',
+            'approved',
             NOW(),
             NOW()
         )"
@@ -839,13 +839,13 @@ if ($action == "create_lost_item") {
 
         response(
             true,
-            "แจ้งของหายสำเร็จ รอ Admin ตรวจสอบ",
+            "แจ้งของหายสำเร็จ",
             [
                 "item_id" => $stmt->insert_id,
                 "user_id" => $user_id,
                 "category_id" => $category_id,
                 "type" => "lost",
-                "status" => "pending"
+                "status" => "approved"
             ]
         );
 
@@ -2707,8 +2707,6 @@ if ($action == "send_item_chat_message") {
 // =====================================================
 // 32. UPDATE ITEM
 // ผู้แจ้งแก้ไขรายการของตัวเอง — แก้ไม่ได้ถ้ามีคนยื่นขอรับแล้ว (claimed/returned)
-// แก้เสร็จรีเซ็ตสถานะกลับเป็น 'pending' เพื่อให้แอดมินตรวจสอบใหม่เสมอ
-// (กันกรณีแก้ข้อมูลหลอกหลังผ่านการอนุมัติไปแล้ว)
 // =====================================================
 
 if ($action == "update_item") {
@@ -2765,7 +2763,7 @@ if ($action == "update_item") {
              lost_found_date = ?,
              description = ?,
              image_url = ?,
-             status = 'pending',
+             status = 'approved',
              updated_at = NOW()
          WHERE id = ?"
     );
@@ -2784,7 +2782,7 @@ if ($action == "update_item") {
 
     if ($stmt->execute()) {
 
-        response(true, "แก้ไขรายการสำเร็จ รอแอดมินตรวจสอบอีกครั้ง");
+        response(true, "แก้ไขรายการสำเร็จ");
 
     } else {
 
@@ -3238,6 +3236,35 @@ if ($action == "confirm_received") {
     }
 
     response(true, "ยืนยันรับของคืนสำเร็จเรียบร้อยแล้ว");
+}
+
+// =====================================================
+// 42. GET ITEM CHAT INFO: ดึงข้อมูลห้องแชทนัดรับของ
+// ใช้สำหรับแสดงปุ่มยืนยันคืนของในหน้าแชท
+// =====================================================
+
+if ($action == "get_item_chat_info") {
+    $item_chat_id = intval($_GET["item_chat_id"] ?? 0);
+    if ($item_chat_id <= 0) {
+        response(false, "กรุณาระบุ item_chat_id");
+    }
+
+    $stmt = $conn->prepare("
+        SELECT ic.id, ic.item_id, ic.claim_id, ic.reporter_id, ic.claimant_id,
+               i.item_name, i.status AS item_status, i.type AS item_type
+        FROM item_chats ic
+        JOIN items i ON ic.item_id = i.id
+        WHERE ic.id = ?
+    ");
+    $stmt->bind_param("i", $item_chat_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+
+    if (!$row) {
+        response(false, "ไม่พบห้องแชทนี้");
+    }
+
+    response(true, "ดึงข้อมูลสำเร็จ", $row);
 }
 
 // =====================================================

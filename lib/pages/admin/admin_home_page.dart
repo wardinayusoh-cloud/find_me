@@ -3,6 +3,7 @@ import '../../services/api_service.dart';
 import 'admin_chat_list_page.dart';
 import '../shared/chat_room_page.dart';
 import '../auth/login_page.dart';
+import '../user/report_item_page.dart';
 
 /// หน้าแรกฝั่ง Admin: ตรวจสอบรายการที่ผู้ใช้แจ้ง และคำขอรับของ
 /// เข้าถึงได้เฉพาะบัญชีที่ users.role = 'admin' (ผ่านมาจาก LoginPage)
@@ -65,12 +66,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
     });
   }
 
-  // แอดมินต้องอนุมัติเฉพาะรายการ "แจ้งพบของ" (found) เท่านั้น ส่วนของหาย (lost) ประกาศอัตโนมัติไม่ต้องอนุมัติ
-  int _itemCount(String status) => items
-      .where((e) =>
-          e['status'] == status &&
-          (status != 'pending' || e['type'] == 'found'))
-      .length;
   int _claimCount(String status) =>
       claims.where((e) => e['status'] == status).length;
 
@@ -112,6 +107,90 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
+  /// เปิดหน้าแจ้งของหาย / พบของสำหรับแอดมิน
+  void _showAdminReportSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'เลือกประเภทการแจ้ง',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEA580C).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.search_off, color: Color(0xFFEA580C)),
+              ),
+              title: const Text('แจ้งของหาย', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('ลงทะเบียนรายการสิ่งของที่สูญหาย'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                _openAdminReport(asFound: false);
+              },
+            ),
+            const Divider(height: 1, indent: 72),
+            ListTile(
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16A34A).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.location_on, color: Color(0xFF16A34A)),
+              ),
+              title: const Text('แจ้งพบของ', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('ลงทะเบียนรายการสิ่งของที่พบ'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                _openAdminReport(asFound: true);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openAdminReport({required bool asFound}) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReportItemPage(
+          userData: widget.userData,
+          startAsFound: asFound,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    _loadAll();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,7 +206,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
             Text(
               const [
                 'แดชบอร์ด',
-                'ตรวจสอบรายการ',
+                'รายการทั้งหมด',
                 'คำขอรับของ',
                 'แชทกับผู้ใช้',
               ][navIndex],
@@ -157,6 +236,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 ],
               ),
             ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAdminReportSheet,
+        backgroundColor: kAccent,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('แจ้งรายการ'),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navIndex,
         onDestinationSelected: (i) => setState(() => navIndex = i),
@@ -171,7 +257,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           NavigationDestination(
             icon: badge(
               const Icon(Icons.fact_check_outlined),
-              _itemCount('pending'),
+              items.length,
             ),
             selectedIcon: Icon(Icons.fact_check, color: kAccent),
             label: 'รายการ',
@@ -282,10 +368,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
           childAspectRatio: 1.5,
           children: [
             _statCard(
-              'รอตรวจสอบ',
-              _itemCount('pending'),
-              Icons.hourglass_top,
-              const Color(0xFFEA580C),
+              'รายการทั้งหมด',
+              items.length,
+              Icons.inventory_2_outlined,
+              const Color(0xFF2563EB),
             ),
             _statCard(
               'คำขอรอตรวจสอบ',
@@ -294,31 +380,31 @@ class _AdminHomePageState extends State<AdminHomePage> {
               const Color(0xFFDC2626),
             ),
             _statCard(
-              'อนุมัติแล้ว',
-              _itemCount('approved') + _itemCount('claimed'),
-              Icons.verified_outlined,
-              const Color(0xFF2563EB),
+              'ของหาย',
+              items.where((e) => e['type'] == 'lost').length,
+              Icons.search_off,
+              const Color(0xFFEA580C),
             ),
             _statCard(
-              'คืนสำเร็จ',
-              _itemCount('returned'),
-              Icons.emoji_events_outlined,
+              'พบของ',
+              items.where((e) => e['type'] == 'found').length,
+              Icons.location_on,
               const Color(0xFF16A34A),
             ),
           ],
         ),
         const SizedBox(height: 20),
         const Text(
-          'งานที่ต้องทำวันนี้',
+          'การดำเนินการด่วน',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
         const SizedBox(height: 10),
         _taskTile(
-          icon: Icons.fact_check_outlined,
-          color: const Color(0xFFEA580C),
-          title: 'รายการรอตรวจสอบ',
-          subtitle: '${_itemCount('pending')} รายการ รอการอนุมัติ',
-          onTap: () => setState(() => navIndex = 1),
+          icon: Icons.add_circle_outline,
+          color: kAccent,
+          title: 'แจ้งของหาย / พบของ',
+          subtitle: 'เพิ่มรายการใหม่เข้าสู่ระบบ',
+          onTap: _showAdminReportSheet,
         ),
         const SizedBox(height: 10),
         _taskTile(
@@ -327,6 +413,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
           title: 'คำขอรับของรอตรวจสอบ',
           subtitle: '${_claimCount('pending')} คำขอ รอการยืนยัน',
           onTap: () => setState(() => navIndex = 2),
+        ),
+        const SizedBox(height: 10),
+        _taskTile(
+          icon: Icons.fact_check_outlined,
+          color: const Color(0xFFEA580C),
+          title: 'ดูรายการทั้งหมด',
+          subtitle: '${items.length} รายการในระบบ',
+          onTap: () => setState(() => navIndex = 1),
         ),
       ],
     );
@@ -419,29 +513,26 @@ class _AdminHomePageState extends State<AdminHomePage> {
   // =====================================================
 
   Widget _itemsTab() {
-    // เฉพาะรายการ "แจ้งพบของ" (found) ที่ต้องรอแอดมินอนุมัติ ส่วนของหาย (lost) ไม่ต้องอนุมัติ
-    final pending = items
-        .where((e) => e['status'] == 'pending' && e['type'] == 'found')
-        .toList();
-    final others = items
-        .where((e) => !(e['status'] == 'pending' && e['type'] == 'found'))
-        .toList();
-
     if (items.isEmpty) return _empty('ยังไม่มีรายการแจ้งเข้ามา');
+
+    final lostItems = items.where((e) => e['type'] == 'lost').toList();
+    final foundItems = items.where((e) => e['type'] == 'found').toList();
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
-        if (pending.isNotEmpty) ...[
-          _sectionTitle('พบของ - รอตรวจสอบ', pending.length, const Color(0xFFEA580C)),
+        if (lostItems.isNotEmpty) ...[
+          _sectionTitle('ของหาย', lostItems.length, const Color(0xFFEA580C)),
           const SizedBox(height: 10),
-          ...pending.map(_itemCard),
+          ...lostItems.map(_itemCard),
           const SizedBox(height: 18),
         ],
-        _sectionTitle('ประวัติทั้งหมด', others.length, Colors.grey),
-        const SizedBox(height: 10),
-        ...others.map(_itemCard),
+        if (foundItems.isNotEmpty) ...[
+          _sectionTitle('พบของ', foundItems.length, const Color(0xFF16A34A)),
+          const SizedBox(height: 10),
+          ...foundItems.map(_itemCard),
+        ],
       ],
     );
   }
@@ -557,48 +648,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
               ),
             ],
           ),
-          // ปุ่มอนุมัติ/ปฏิเสธ แสดงเฉพาะกรณี "แจ้งพบของ" (found) ที่รอตรวจสอบ
-          if (status == 'pending' && isFound) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _decideItem(item, approve: false),
-                    icon: const Icon(Icons.close, size: 16, color: Colors.red),
-                    label: const Text(
-                      'ปฏิเสธ',
-                      style: TextStyle(color: Colors.red, fontSize: 12.5),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _decideItem(item, approve: true),
-                    icon: const Icon(Icons.check, size: 16),
-                    label: const Text(
-                      'อนุมัติ',
-                      style: TextStyle(fontSize: 12.5),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF16A34A),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );
@@ -650,39 +699,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }
 
 
-  Future<void> _decideItem(
-    Map<String, dynamic> item, {
-    required bool approve,
-  }) async {
-    final itemId = int.tryParse(item['id'].toString()) ?? 0;
 
-    if (!approve) {
-      final ok = await _confirm(
-        'ปฏิเสธรายการนี้?',
-        'รายการ "${item['item_name']}" จะถูกปฏิเสธและไม่แสดงต่อผู้ใช้ทั่วไป',
-      );
-      if (ok != true) return;
-    }
-
-    final res = approve
-        ? await ApiService.approveItem(adminId: adminId, itemId: itemId)
-        : await ApiService.rejectItem(adminId: adminId, itemId: itemId);
-
-    if (!mounted) return;
-
-    if (res['success'] == true) {
-      _toast(
-        approve ? 'อนุมัติรายการแล้ว' : 'ปฏิเสธรายการแล้ว',
-        color: Colors.green,
-      );
-      _loadAll();
-    } else {
-      _toast(
-        res['message']?.toString() ?? 'ดำเนินการไม่สำเร็จ',
-        color: Colors.red,
-      );
-    }
-  }
 
   // =====================================================
   // CLAIMS TAB (คำขอรับของ)
@@ -939,30 +956,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
     }
   }
 
-  Future<bool?> _confirm(String title, String content) {
-    return showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('ยกเลิก'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('ยืนยัน'),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ---------- ชิ้นส่วนย่อย ----------
 
