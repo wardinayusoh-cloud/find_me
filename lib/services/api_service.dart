@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
   // =====================================================
@@ -66,12 +67,12 @@ class ApiService {
         body: {'username': username, 'password': password},
       );
 
-      print('LOGIN STATUS: ${response.statusCode}');
-      print('LOGIN RESPONSE: ${response.body}');
+      debugPrint('LOGIN STATUS: ${response.statusCode}');
+      debugPrint('LOGIN RESPONSE: ${response.body}');
 
       return jsonDecode(response.body);
     } catch (e) {
-      print('LOGIN ERROR: $e');
+      debugPrint('LOGIN ERROR: $e');
 
       return {'success': false, 'message': 'ไม่สามารถเชื่อมต่อ Server ได้'};
     }

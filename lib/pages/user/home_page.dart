@@ -1358,8 +1358,9 @@ class _HomePageState extends State<HomePage> {
                                   color: tempCategory == null ? kBlue : kText,
                                 ),
                                 onSelected: (val) {
-                                  if (val)
+                                  if (val) {
                                     setSheetState(() => tempCategory = null);
+                                  }
                                 },
                               ),
                               ...cats.map((cat) {
@@ -1426,10 +1427,11 @@ class _HomePageState extends State<HomePage> {
                                         : kText,
                                   ),
                                   onSelected: (val) {
-                                    if (val)
+                                    if (val) {
                                       setSheetState(
                                         () => tempSortBy = 'newest',
                                       );
+                                    }
                                   },
                                 ),
                               ),
@@ -1458,10 +1460,11 @@ class _HomePageState extends State<HomePage> {
                                         : kText,
                                   ),
                                   onSelected: (val) {
-                                    if (val)
+                                    if (val) {
                                       setSheetState(
                                         () => tempSortBy = 'oldest',
                                       );
+                                    }
                                   },
                                 ),
                               ),
@@ -1495,8 +1498,9 @@ class _HomePageState extends State<HomePage> {
                                   color: tempColor == null ? kBlue : kText,
                                 ),
                                 onSelected: (val) {
-                                  if (val)
+                                  if (val) {
                                     setSheetState(() => tempColor = null);
+                                  }
                                 },
                               ),
                               ...colors.map((c) {
@@ -1550,8 +1554,9 @@ class _HomePageState extends State<HomePage> {
                                     color: tempLocation == null ? kBlue : kText,
                                   ),
                                   onSelected: (val) {
-                                    if (val)
+                                    if (val) {
                                       setSheetState(() => tempLocation = null);
+                                    }
                                   },
                                 ),
                                 ...locs.map((loc) {
@@ -1594,7 +1599,7 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, -4),
                         ),
@@ -1683,7 +1688,7 @@ class _HomePageState extends State<HomePage> {
             color: selected ? const Color(0xFFEFF6FF) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selected ? kBlue.withOpacity(0.25) : Colors.transparent,
+              color: selected ? kBlue.withValues(alpha: 0.25) : Colors.transparent,
             ),
           ),
           child: Row(
@@ -1778,7 +1783,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0xFFE2E8F0)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10),
           ],
         ),
         child: Column(
@@ -1800,7 +1805,7 @@ class _HomePageState extends State<HomePage> {
                               : Image.network(
                                   imageUrl,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
+                                  errorBuilder: (context, error, stackTrace) =>
                                       _imagePlaceholder(),
                                 ),
                         ),

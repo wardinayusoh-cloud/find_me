@@ -217,7 +217,7 @@ class _ReportLostPageState extends State<ReportLostPage> {
 
             // หมวดหมู่
             DropdownButtonFormField<String>(
-              value: selectedCategory,
+              initialValue: selectedCategory,
               decoration: inputDecoration(
                 label: 'หมวดหมู่',
                 icon: Icons.category_outlined,

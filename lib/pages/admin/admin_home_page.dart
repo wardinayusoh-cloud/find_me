@@ -138,7 +138,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEA580C).withOpacity(0.12),
+                  color: const Color(0xFFEA580C).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.search_off, color: Color(0xFFEA580C)),
@@ -157,7 +157,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF16A34A).withOpacity(0.12),
+                  color: const Color(0xFF16A34A).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.location_on, color: Color(0xFF16A34A)),
@@ -247,7 +247,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         selectedIndex: navIndex,
         onDestinationSelected: (i) => setState(() => navIndex = i),
         backgroundColor: Colors.white,
-        indicatorColor: kAccent.withOpacity(0.12),
+        indicatorColor: kAccent.withValues(alpha: 0.12),
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
@@ -476,7 +476,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: color),
@@ -573,7 +573,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       : Image.network(
                           img,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (context, error, stackTrace) => Container(
                             color: const Color(0xFFE2E8F0),
                             child: const Icon(
                               Icons.broken_image_outlined,
@@ -762,7 +762,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       : Image.network(
                           img,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (context, error, stackTrace) => Container(
                             color: const Color(0xFFE2E8F0),
                             child: const Icon(
                               Icons.broken_image_outlined,
@@ -970,7 +970,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -990,7 +990,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
