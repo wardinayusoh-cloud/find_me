@@ -123,7 +123,7 @@ class _CategoryPageState extends State<CategoryPage> {
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withOpacity(0.04), blurRadius: 8),
+                    color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
               ],
             ),
             child: TextField(
@@ -237,7 +237,7 @@ class _CategoryPageState extends State<CategoryPage> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFE2E8F0)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
           ],
         ),
         child: Column(
@@ -249,7 +249,7 @@ class _CategoryPageState extends State<CategoryPage> {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(_iconFor(name), color: color, size: 22),
@@ -259,7 +259,7 @@ class _CategoryPageState extends State<CategoryPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -295,7 +295,7 @@ class _CategoryPageState extends State<CategoryPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
+                color: color.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(

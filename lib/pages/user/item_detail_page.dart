@@ -209,6 +209,8 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
 
     if (result == null) return;
 
+    if (!mounted) return;
+
     final description = result['description'] as String? ?? '';
     final image = result['image'] as XFile?;
 
@@ -434,7 +436,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                       itemBuilder: (_, i) => Image.network(
                         images[i],
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (context, error, stackTrace) => Container(
                           color: const Color(0xFFE2E8F0),
                           child: const Icon(Icons.broken_image_outlined, size: 60, color: Colors.grey),
                         ),
@@ -541,7 +543,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundColor: typeColor.withOpacity(0.15),
+                        backgroundColor: typeColor.withValues(alpha: 0.15),
                         child: Text(
                           reporter.isNotEmpty ? reporter[0].toUpperCase() : 'U',
                           style: TextStyle(color: typeColor, fontWeight: FontWeight.bold, fontSize: 16),
@@ -572,7 +574,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.07),
+              color: Colors.black.withValues(alpha: 0.07),
               blurRadius: 20,
               offset: const Offset(0, -4),
             )
@@ -673,7 +675,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
         children: [
           Container(
             padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, size: 16, color: color),
           ),
           const SizedBox(width: 12),

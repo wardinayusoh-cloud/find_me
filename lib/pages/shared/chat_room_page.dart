@@ -294,7 +294,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                         img,
                         width: 180,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const SizedBox(
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(
                           width: 180,
                           height: 120,
                           child: Icon(

@@ -548,7 +548,7 @@ class _PattaniMapPickerPageState extends State<PattaniMapPickerPage> {
                             child: Image.network(
                               'https://tile.openstreetmap.org/$zoomLevel/${tileX + dx}/${tileY + dy}.png',
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (context, error, stackTrace) => Container(
                                 color: const Color(0xFFF3F4F6),
                                 child: const Center(
                                   child: Icon(
@@ -1013,7 +1013,7 @@ class _PattaniMapPickerPageState extends State<PattaniMapPickerPage> {
                           Expanded(
                             child: ListView.separated(
                               itemCount: filteredPlaces.length,
-                              separatorBuilder: (_, __) =>
+                              separatorBuilder: (context, index) =>
                                   const Divider(height: 1),
                               itemBuilder: (ctx, i) {
                                 final p = filteredPlaces[i];

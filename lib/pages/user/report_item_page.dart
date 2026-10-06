@@ -184,7 +184,7 @@ class _ReportItemPageState extends State<ReportItemPage> {
               width: 84,
               height: 84,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (context, error, stackTrace) => Container(
                 width: 84,
                 height: 84,
                 color: const Color(0xFFE2E8F0),
@@ -699,7 +699,7 @@ class _ReportItemPageState extends State<ReportItemPage> {
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: _totalImages,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          separatorBuilder: (context, index) => const SizedBox(width: 8),
                           itemBuilder: (context, index) {
                             return Stack(
                               clipBehavior: Clip.none,
@@ -787,7 +787,7 @@ class _ReportItemPageState extends State<ReportItemPage> {
                                 ),
                               )
                             : DropdownButtonFormField<int>(
-                                value: selectedCategoryId,
+                                initialValue: selectedCategoryId,
                                 isExpanded: true,
                                 decoration: _fieldDecoration(
                                   hint: 'เลือกหมวดหมู่',
@@ -827,7 +827,7 @@ class _ReportItemPageState extends State<ReportItemPage> {
                         // จึงตรึงค่าไว้ ไม่ให้ผู้ใช้เปลี่ยนจังหวัดอื่น
                         IgnorePointer(
                           child: DropdownButtonFormField<String>(
-                            value: selectedProvince,
+                            initialValue: selectedProvince,
                             isExpanded: true,
                             decoration: _fieldDecoration(hint: 'ปัตตานี'),
                             items: provinces.map((p) {
