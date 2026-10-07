@@ -350,7 +350,7 @@ class _HomePageState extends State<HomePage> {
   // CLAIM
   // =====================================================
 
-  Future<void> _claimItem(Map<String, dynamic> item) async {
+  Future<void> _claimItem(Map<String, dynamic> item, {bool isFoundReport = false}) async {
     final controller = TextEditingController();
     XFile? selectedImage;
 
@@ -362,7 +362,7 @@ class _HomePageState extends State<HomePage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: const Text('ยื่นสิทธิ์ความเป็นเจ้าของ'),
+            title: Text(isFoundReport ? 'รายละเอียดการพบของ' : 'ยื่นสิทธิ์ความเป็นเจ้าของ'),
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
               child: SingleChildScrollView(
@@ -380,9 +380,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'ถ่ายรูปของคุณเพื่อยืนยันว่าเป็นเจ้าของ',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    Text(
+                      isFoundReport ? 'ถ่ายรูปสิ่งของที่พบเพื่อเป็นหลักฐาน' : 'ถ่ายรูปของคุณเพื่อยืนยันว่าเป็นเจ้าของ',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
@@ -504,11 +504,12 @@ class _HomePageState extends State<HomePage> {
                     TextField(
                       controller: controller,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText:
-                            'อธิบายลักษณะเฉพาะของสิ่งของ\nเพื่อยืนยันว่าเป็นของคุณ',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(10),
+                      decoration: InputDecoration(
+                        hintText: isFoundReport
+                            ? 'อธิบายรายละเอียดเพิ่มเติมเกี่ยวกับสิ่งของที่พบ'
+                            : 'อธิบายลักษณะเฉพาะของสิ่งของ\nเพื่อยืนยันว่าเป็นของคุณ',
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.all(10),
                       ),
                     ),
                   ],
@@ -554,7 +555,7 @@ class _HomePageState extends State<HomePage> {
 
     if (description.isEmpty) {
       _toast(
-        'กรุณากรอกรายละเอียดเพื่อยืนยันความเป็นเจ้าของ',
+        isFoundReport ? 'กรุณากรอกรายละเอียดเพิ่มเติม' : 'กรุณากรอกรายละเอียดเพื่อยืนยันความเป็นเจ้าของ',
         color: Colors.red,
       );
       return;
@@ -583,10 +584,18 @@ class _HomePageState extends State<HomePage> {
       evidenceImage: evidenceImageUrl,
     );
 
+    if (isFoundReport) {
+      ApiService.reportFound(
+        lostItemId: int.tryParse(item['id'].toString()) ?? 0,
+        finderId: int.tryParse(user['id']?.toString() ?? '') ?? 0,
+        location: item['location']?.toString() ?? '',
+      );
+    }
+
     if (!mounted) return;
 
     if (res['success'] == true) {
-      _toast('ส่งคำขอรับของแล้ว', color: Colors.green);
+      _toast(isFoundReport ? 'ส่งรายละเอียดการพบของแล้ว' : 'ส่งคำขอรับของแล้ว', color: Colors.green);
 
       // สอบถามผู้ใช้ว่าต้องการเปิดห้องแชทคุยกับเจ้าหน้าที่/แอดมินเกี่ยวกับรายการนี้เลยหรือไม่
       final openChat = await showDialog<bool>(
@@ -603,7 +612,9 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           content: Text(
-            'ส่งคำขอยื่นสิทธิ์สำหรับ "${item['item_name'] ?? 'สิ่งของ'}" สำเร็จแล้ว ระบบได้ส่งการแจ้งเตือนไปยังผู้แจ้งแล้ว\nต้องการเปิดห้องแชทคุยกับผู้แจ้งทันทีหรือไม่?',
+            isFoundReport
+                ? 'ส่งรายละเอียดการพบของสำเร็จแล้ว ระบบได้ส่งการแจ้งเตือนไปยังผู้แจ้งแล้ว\nต้องการเปิดห้องแชทคุยกับผู้แจ้งทันทีหรือไม่?'
+                : 'ส่งคำขอยื่นสิทธิ์สำหรับ "${item['item_name'] ?? 'สิ่งของ'}" สำเร็จแล้ว ระบบได้ส่งการแจ้งเตือนไปยังผู้แจ้งแล้ว\nต้องการเปิดห้องแชทคุยกับผู้แจ้งทันทีหรือไม่?',
           ),
           actions: [
             TextButton(
@@ -637,6 +648,66 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// เปิดห้องแชทติดต่อแอดมิน
+  Future<void> _chatWithAdmin(Map<String, dynamic> item) async {
+    final currentUserId = int.tryParse(user['id']?.toString() ?? '') ?? 0;
+    if (currentUserId <= 0) {
+      _toast('กรุณาเข้าสู่ระบบก่อนเริ่มแชท', color: Colors.red);
+      return;
+    }
+
+    _toast('กำลังติดต่อแอดมิน...', color: kBlue);
+    final adminRes = await ApiService.getDefaultAdmin();
+    if (!mounted) return;
+
+    if (adminRes['success'] != true || adminRes['data'] == null) {
+      _toast('ไม่พบแอดมินในระบบ', color: Colors.red);
+      return;
+    }
+
+    final adminId = int.tryParse(adminRes['data']['id'].toString()) ?? 0;
+    if (adminId <= 0) {
+      _toast('ไม่พบแอดมินในระบบ', color: Colors.red);
+      return;
+    }
+
+    final itemId = int.tryParse(item['id']?.toString() ?? '') ?? 0;
+    final res = await ApiService.createConversation(
+      userId: currentUserId,
+      itemId: itemId,
+      adminId: adminId,
+    );
+
+    if (!mounted) return;
+
+    if (res['success'] != true || res['data'] == null) {
+      _toast(res['message']?.toString() ?? 'ไม่สามารถสร้างห้องแชทได้', color: Colors.red);
+      return;
+    }
+
+    final data = res['data'];
+    final conversationId = int.tryParse(
+      (data['conversation_id'] ?? data['id'])?.toString() ?? '',
+    ) ?? 0;
+
+    if (conversationId <= 0) {
+      _toast('ไม่สามารถเข้าสู่ห้องแชทได้', color: Colors.red);
+      return;
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatRoomPage(
+          conversationId: conversationId,
+          currentUserId: currentUserId,
+          title: 'Admin (แอดมิน)',
+          subtitle: 'เรื่อง: ${item['item_name']}',
+        ),
+      ),
+    );
+  }
+
   /// เปิดห้องแชทนัดรับของ / คุยกับผู้แจ้งรายการนี้โดยตรง
   Future<void> _chatAboutItem(Map<String, dynamic> item) async {
     final currentUserId = int.tryParse(user['id']?.toString() ?? '') ?? 0;
@@ -654,6 +725,7 @@ class _HomePageState extends State<HomePage> {
     _toast('กำลังเปิดห้องแชท...');
 
     final itemId = int.tryParse(item['id']?.toString() ?? '') ?? 0;
+
     final res = await ApiService.openItemChat(
       itemId: itemId,
       userId: currentUserId,
@@ -706,27 +778,8 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final itemId = int.tryParse(item['id']?.toString() ?? '') ?? 0;
-
-    // ส่งแจ้งเตือนไปหาเจ้าของในเบื้องหลัง (silent)
-    ApiService.reportFound(
-      lostItemId: itemId,
-      finderId: currentUserId,
-      location: item['location']?.toString() ?? '',
-    );
-
-    // ยื่น claim อัตโนมัติก่อน (openItemChat ต้องการ claim)
-    // ถ้ามี claim อยู่แล้วระบบจะ ignore (API จะคืน error แต่แชทยังเปิดได้)
-    await ApiService.claim(
-      itemId: itemId,
-      userId: currentUserId,
-      description: 'แจ้งว่าพบของชิ้นนี้',
-    );
-
-    if (!mounted) return;
-
-    // เปิดแชทกับเจ้าของตามปกติ
-    _chatAboutItem(item);
+    // เรียกหน้าต่างแบบเดียวกับ claim แต่เปลี่ยนข้อความ
+    await _claimItem(item, isFoundReport: true);
   }
 
   // =====================================================
@@ -1941,11 +1994,9 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 8),
                   if (!isOwner) ...[
                     IconButton(
-                      tooltip: isFoundItem
-                          ? 'ติดต่อสอบถาม/แชทเรื่องนี้'
-                          : 'ติดต่อเจ้าของ/แชท',
+                      tooltip: 'ติดต่อแอดมิน',
                       icon: const Icon(
-                        Icons.chat_bubble_outline,
+                        Icons.support_agent_outlined,
                         size: 20,
                         color: kBlue,
                       ),
@@ -1957,7 +2008,7 @@ class _HomePageState extends State<HomePage> {
                           side: const BorderSide(color: Color(0xFFBFDBFE)),
                         ),
                       ),
-                      onPressed: () => _chatAboutItem(item),
+                      onPressed: () => _chatWithAdmin(item),
                     ),
                     const SizedBox(width: 8),
                     isFoundItem

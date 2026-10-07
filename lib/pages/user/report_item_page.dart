@@ -200,12 +200,24 @@ class _ReportItemPageState extends State<ReportItemPage> {
               width: 84,
               height: 84,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 84,
+                height: 84,
+                color: const Color(0xFFE2E8F0),
+                child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+              ),
             )
           : Image.file(
               File(_images[index - _existingUrls.length].path),
               width: 84,
               height: 84,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 84,
+                height: 84,
+                color: const Color(0xFFE2E8F0),
+                child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+              ),
             ),
     );
   }
@@ -787,7 +799,9 @@ class _ReportItemPageState extends State<ReportItemPage> {
                                 ),
                               )
                             : DropdownButtonFormField<int>(
-                                initialValue: selectedCategoryId,
+                                value: (categories.any((c) => int.tryParse(c['id'].toString()) == selectedCategoryId))
+                                    ? selectedCategoryId
+                                    : null,
                                 isExpanded: true,
                                 decoration: _fieldDecoration(
                                   hint: 'เลือกหมวดหมู่',
@@ -827,7 +841,9 @@ class _ReportItemPageState extends State<ReportItemPage> {
                         // จึงตรึงค่าไว้ ไม่ให้ผู้ใช้เปลี่ยนจังหวัดอื่น
                         IgnorePointer(
                           child: DropdownButtonFormField<String>(
-                            initialValue: selectedProvince,
+                            value: (provinces.any((p) => p['name'] == selectedProvince))
+                                ? selectedProvince
+                                : null,
                             isExpanded: true,
                             decoration: _fieldDecoration(hint: 'ปัตตานี'),
                             items: provinces.map((p) {

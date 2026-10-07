@@ -240,6 +240,100 @@ if ($action == "login") {
 
 
 // =====================================================
+// 2.5 RESET PASSWORD (ลืมรหัสผ่าน)
+// =====================================================
+
+if ($action == "reset_password") {
+
+    $username     = $_POST["username"] ?? "";
+    $email        = $_POST["email"] ?? "";
+    $new_password = $_POST["new_password"] ?? "";
+
+    if (
+        empty($username) ||
+        empty($email) ||
+        empty($new_password)
+    ) {
+        response(
+            false,
+            "กรุณากรอกข้อมูลให้ครบ"
+        );
+    }
+
+
+    // ตรวจสอบว่า username + email ตรงกัน
+
+    $stmt = $conn->prepare(
+        "SELECT id
+         FROM users
+         WHERE username = ?
+         AND email = ?"
+    );
+
+    $stmt->bind_param(
+        "ss",
+        $username,
+        $email
+    );
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if ($result->num_rows == 0) {
+
+        response(
+            false,
+            "ไม่พบบัญชีที่ตรงกับ Username และ Email ที่กรอก"
+        );
+    }
+
+
+    $user = $result->fetch_assoc();
+
+
+    // Hash Password ใหม่
+
+    $hashedPassword = password_hash(
+        $new_password,
+        PASSWORD_DEFAULT
+    );
+
+
+    // อัปเดตรหัสผ่าน
+
+    $update = $conn->prepare(
+        "UPDATE users
+         SET password = ?
+         WHERE id = ?"
+    );
+
+    $update->bind_param(
+        "si",
+        $hashedPassword,
+        $user["id"]
+    );
+
+    $update->execute();
+
+
+    if ($update->affected_rows > 0) {
+
+        response(
+            true,
+            "เปลี่ยนรหัสผ่านสำเร็จ"
+        );
+    } else {
+
+        response(
+            false,
+            "ไม่สามารถเปลี่ยนรหัสผ่านได้"
+        );
+    }
+}
+
+
+// =====================================================
 // 3. GET CATEGORIES
 // =====================================================
 
@@ -1162,25 +1256,26 @@ if ($action == "approve_claim") {
     }
 
 
-    // หา Item ID
+    // หา Item ID + ข้อมูล claimant
 
     $stmt = $conn->prepare(
-        "SELECT item_id
+        "SELECT claims.item_id,
+                claims.user_id AS claimant_id,
+                items.user_id  AS reporter_id,
+                items.item_name
          FROM claims
-         WHERE id = ?"
+         INNER JOIN items ON claims.item_id = items.id
+         WHERE claims.id = ?"
     );
-
 
     $stmt->bind_param(
         "i",
         $claim_id
     );
 
-
     $stmt->execute();
 
     $result = $stmt->get_result();
-
 
     if ($result->num_rows == 0) {
 
@@ -1190,10 +1285,12 @@ if ($action == "approve_claim") {
         );
     }
 
-
     $claim = $result->fetch_assoc();
 
-    $item_id = $claim["item_id"];
+    $item_id     = $claim["item_id"];
+    $claimant_id = (int) $claim["claimant_id"];
+    $reporter_id = (int) $claim["reporter_id"];
+    $item_name   = $claim["item_name"] ?? "สิ่งของ";
 
 
     // อนุมัติ Claim
@@ -1207,13 +1304,11 @@ if ($action == "approve_claim") {
          WHERE id = ?"
     );
 
-
     $update->bind_param(
         "si",
         $admin_note,
         $claim_id
     );
-
 
     $update->execute();
 
@@ -1232,6 +1327,44 @@ if ($action == "approve_claim") {
     );
 
     $itemUpdate->execute();
+
+
+    // ส่งแจ้งเตือนไปยังผู้แจ้ง (คนที่ตามหาของ) ว่ามีคนพบของและแอดมินอนุมัติแล้ว
+    if ($reporter_id > 0) {
+        // ดึงชื่อผู้ที่พบของ
+        $claimantQuery = $conn->query("SELECT full_name, username FROM users WHERE id = " . intval($claimant_id));
+        $claimantName = "มีผู้ใช้";
+        if ($cRow = $claimantQuery->fetch_assoc()) {
+            $claimantName = !empty($cRow["full_name"]) ? $cRow["full_name"] : $cRow["username"];
+        }
+
+        $notifTitle = "🎉 มีคนพบของของคุณ: " . $item_name;
+        $notifMsg   = $claimantName . " ได้แจ้งว่าพบ \"" . $item_name . "\" และแอดมินได้อนุมัติแล้ว กรุณาติดต่อเพื่อนัดรับของคืน";
+
+        $insNotif = $conn->prepare("
+            INSERT INTO notifications (user_id, title, message, claim_id, item_id, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+        if ($insNotif) {
+            $insNotif->bind_param("issii", $reporter_id, $notifTitle, $notifMsg, $claim_id, $item_id);
+            $insNotif->execute();
+        }
+    }
+
+    // ส่งแจ้งเตือนไปยังผู้ยื่นสิทธิ์ (คนที่พบของ) ว่าคำขอได้รับการอนุมัติแล้ว
+    if ($claimant_id > 0 && $claimant_id !== $reporter_id) {
+        $notifTitle2 = "✅ คำขอของคุณได้รับการอนุมัติ: " . $item_name;
+        $notifMsg2   = "แอดมินได้อนุมัติคำขอของคุณสำหรับ \"" . $item_name . "\" แล้ว กรุณาติดต่อผู้แจ้งเพื่อนัดรับของ";
+
+        $insNotif2 = $conn->prepare("
+            INSERT INTO notifications (user_id, title, message, claim_id, item_id, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+        if ($insNotif2) {
+            $insNotif2->bind_param("issii", $claimant_id, $notifTitle2, $notifMsg2, $claim_id, $item_id);
+            $insNotif2->execute();
+        }
+    }
 
     response(
         true,
@@ -2370,11 +2503,11 @@ if ($action == "open_item_chat") {
              FROM claims
              INNER JOIN items
                 ON claims.item_id = items.id
-             WHERE claims.item_id = ?
+             WHERE claims.item_id = ? AND (claims.user_id = ? OR items.user_id = ?)
              ORDER BY claims.id DESC
              LIMIT 1"
         );
-        $stmt->bind_param("i", $item_id);
+        $stmt->bind_param("iii", $item_id, $user_id, $user_id);
     }
 
     $stmt->execute();

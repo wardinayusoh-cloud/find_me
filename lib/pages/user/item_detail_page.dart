@@ -131,12 +131,24 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                                         fit: BoxFit.cover,
                                         width: double.infinity,
                                         height: 120,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          width: double.infinity,
+                                          height: 120,
+                                          color: const Color(0xFFE2E8F0),
+                                          child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+                                        ),
                                       )
                                     : Image.file(
                                         File(selectedImage!.path),
                                         fit: BoxFit.cover,
                                         width: double.infinity,
                                         height: 120,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          width: double.infinity,
+                                          height: 120,
+                                          color: const Color(0xFFE2E8F0),
+                                          child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+                                        ),
                                       ),
                               )
                             : const Column(

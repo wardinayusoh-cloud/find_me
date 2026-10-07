@@ -582,6 +582,22 @@ class ApiService {
   });
 
   // =====================================================
+  // RESET PASSWORD (ลืมรหัสผ่าน)
+  // =====================================================
+
+  /// รีเซ็ตรหัสผ่าน — ส่ง username + email เพื่อยืนยันตัวตน
+  /// แล้วอัปเดตรหัสผ่านใหม่ (action=reset_password)
+  static Future<Map<String, dynamic>> resetPassword({
+    required String username,
+    required String email,
+    required String newPassword,
+  }) => _post('reset_password', {
+    'username': username,
+    'email': email,
+    'new_password': newPassword,
+  });
+
+  // =====================================================
   // NOTIFICATIONS
   // =====================================================
 

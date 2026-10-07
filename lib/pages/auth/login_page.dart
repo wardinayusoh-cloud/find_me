@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'register_page.dart';
+import 'forgot_password_page.dart';
 import '../user/home_page.dart';
 import '../admin/admin_home_page.dart';
 
@@ -253,7 +254,35 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 10),
+
+              // =================================================
+              // ลืมรหัสผ่าน?
+              // =================================================
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ForgotPasswordPage(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'ลืมรหัสผ่าน?',
+                    style: TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
 
               // =================================================
               // LOGIN BUTTON
